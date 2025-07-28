@@ -42,25 +42,25 @@ class IPFireAPI:
         self.snmp_community = config["snmp_community"]
 
     async def get_snmp_data(self):
-    def fetch():
-        results = {}
-        for sensor in SNMP_SENSORS:
-            oid = sensor["oid"]
-            try:
-                iterator = getCmd(
-                    SnmpEngine(),
-                    CommunityData(self.snmp_community),
-                    UdpTransportTarget((self.snmp_host, 161)),
-                    ContextData(),
-                    ObjectType(ObjectIdentity(oid))
-                )
-                errorIndication, errorStatus, errorIndex, varBinds = next(iterator)
-                if not errorIndication and not errorStatus:
-                    for varBind in varBinds:
-                        results[oid] = str(varBind[1])
-            except Exception as e:
-                results[oid] = f"SNMP error: {e}"
-        return results
+        def fetch():
+            results = {}
+            for sensor in SNMP_SENSORS:
+                oid = sensor["oid"]
+                try:
+                    iterator = getCmd(
+                        SnmpEngine(),
+                        CommunityData(self.snmp_community),
+                        UdpTransportTarget((self.snmp_host, 161)),
+                        ContextData(),
+                        ObjectType(ObjectIdentity(oid))
+                    )
+                    errorIndication, errorStatus, errorIndex, varBinds = next(iterator)
+                    if not errorIndication and not errorStatus:
+                        for varBind in varBinds:
+                            results[oid] = str(varBind[1])
+                except Exception as e:
+                    results[oid] = f"SNMP error: {e}"
+            return results
 
     return await asyncio.to_thread(fetch)
 
