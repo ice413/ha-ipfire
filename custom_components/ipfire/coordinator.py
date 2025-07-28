@@ -1,15 +1,19 @@
 import logging
 from datetime import timedelta
+
+from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 _LOGGER = logging.getLogger(__name__)
 
 class IPFireCoordinator(DataUpdateCoordinator):
-    def __init__(self, hass, config_entry, api):
-        """Initialize the coordinator."""
+    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry, api):
+        """Initialize the IPFire data coordinator."""
         self.hass = hass
         self.config_entry = config_entry
         self.api = api
+
         self.snmp_refresh = config_entry.data.get("snmp_refresh", 60)
         self.ssh_refresh = config_entry.data.get("ssh_refresh", 3600)
 
@@ -32,4 +36,5 @@ class IPFireCoordinator(DataUpdateCoordinator):
                 "ssh": ssh_data,
             }
         except Exception as err:
-            raise UpdateFailed(f"Error fetching data: {err}")
+            raise UpdateFailed(f"Error fetching data: {err}") from err
+

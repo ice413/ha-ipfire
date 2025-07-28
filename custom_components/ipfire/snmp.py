@@ -22,3 +22,6 @@ def get_snmp_value(host, community, oid):
         for varBind in varBinds:
             return varBind[1]
     return None
+
+async def async_get_snmp_value(hass, host, community, oid):
+    return await hass.async_add_executor_job(get_snmp_value, host, community, oid)
