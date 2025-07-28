@@ -1,0 +1,1 @@
+DOMAIN = "ipfire_firewall"
