@@ -124,10 +124,10 @@ class IPFireAPI:
 # Setup Entry
 # ────────────────────────────────
 
+from .const import DOMAIN
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback):
-    api = IPFireAPI(entry.data)
-    coordinator = IPFireCoordinator(hass, entry, api)
-    await coordinator.async_config_entry_first_refresh()
+    coordinator = hass.data[DOMAIN][entry.entry_id]
 
     snmp_sensors = [
         IPFireSNMPSensor(sensor["name"], sensor["oid"], coordinator)
