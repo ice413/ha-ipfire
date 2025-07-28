@@ -1,1 +1,1 @@
-DOMAIN = "ipfire_firewall"
+DOMAIN = "ipfire"
