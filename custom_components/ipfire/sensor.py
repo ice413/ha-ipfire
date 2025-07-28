@@ -62,14 +62,9 @@ class IPFireAPI:
                     results[oid] = f"SNMP error: {e}"
             return results
 
-    return await asyncio.to_thread(fetch)
-
+        return await asyncio.to_thread(fetch)
 
     async def get_ssh_data(self):
-        from collections import Counter
-        from datetime import datetime
-        import asyncssh
-
         today = datetime.now().strftime("%b %e")
         drop_hostile_total = 0
         unique_ips = set()
@@ -122,6 +117,7 @@ class IPFireAPI:
             "top_ports": top_port,
             "top_ports_raw": top_ports_raw,
         }
+
 
 
 # ────────────────────────────────
