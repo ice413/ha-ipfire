@@ -41,7 +41,7 @@ class IPFireAPI:
         self.snmp_host = config["snmp_host"]
         self.snmp_community = config["snmp_community"]
 
-    def get_snmp_data(self):
+    async def get_snmp_data(self):
         results = {}
         for sensor in SNMP_SENSORS:
             oid = sensor["oid"]
@@ -53,7 +53,7 @@ class IPFireAPI:
                     ContextData(),
                     ObjectType(ObjectIdentity(oid))
                 )
-                errorIndication, errorStatus, errorIndex, varBinds = next(iterator)
+                errorIndication, errorStatus, errorIndex, varBinds = await iterator
                 if not errorIndication and not errorStatus:
                     for varBind in varBinds:
                         results[oid] = str(varBind[1])
@@ -61,7 +61,11 @@ class IPFireAPI:
                 results[oid] = f"SNMP error: {e}"
         return results
 
-    def get_ssh_data(self):
+    async def get_ssh_data(self):
+        from collections import Counter
+        from datetime import datetime
+        import asyncssh
+
         today = datetime.now().strftime("%b %e")
         drop_hostile_total = 0
         unique_ips = set()
@@ -79,8 +83,9 @@ class IPFireAPI:
             conn_args["password"] = self.ssh_password
 
         try:
-            result = asyncssh.run(cmd, **conn_args)
-            lines = result.stdout.splitlines()
+            async with asyncssh.connect(**conn_args) as conn:
+                result = await conn.run(cmd, check=True)
+                lines = result.stdout.splitlines()
         except Exception as e:
             return {
                 "drop_hostile_total": f"SSH error: {e}",
@@ -113,6 +118,7 @@ class IPFireAPI:
             "top_ports": top_port,
             "top_ports_raw": top_ports_raw,
         }
+
 
 # ────────────────────────────────
 # Setup Entry
