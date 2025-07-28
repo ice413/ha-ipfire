@@ -1,12 +1,14 @@
+import asyncio
 import asyncssh
-from pysnmp.hlapi.asyncio import *
+from pysnmp.hlapi import *
+from datetime import datetime
+from collections import Counter
+
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from datetime import datetime
-from collections import Counter
 
 from .coordinator import IPFireCoordinator
 from .const import DOMAIN
@@ -118,13 +120,9 @@ class IPFireAPI:
             "top_ports_raw": top_ports_raw,
         }
 
-
-
 # ────────────────────────────────
 # Setup Entry
 # ────────────────────────────────
-
-from .const import DOMAIN
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback):
     coordinator = hass.data[DOMAIN][entry.entry_id]

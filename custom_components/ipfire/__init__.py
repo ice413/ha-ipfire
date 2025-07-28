@@ -4,7 +4,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import DOMAIN
 from .coordinator import IPFireCoordinator
-from .sensor import IPFireAPI  # Import the embedded API class
+from .sensor import IPFireAPI  # This is where your API class lives
 
 PLATFORMS = ["sensor"]
 
@@ -29,5 +29,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
+
 
 
