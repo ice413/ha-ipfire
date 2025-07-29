@@ -64,7 +64,8 @@ class IPFireAPI:
                     results[oid] = f"SNMP error: {e}"
             return results
 
-        return await asyncio.to_thread(fetch)
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, fetch)
 
     async def get_ssh_data(self):
         today = datetime.now().strftime("%b %e")
