@@ -11,12 +11,14 @@ from homeassistant.core import HomeAssistant
 
 from .coordinator import IPFireCoordinator
 from .const import DOMAIN
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 
 # ────────────────────────────────
 # API Class for Coordinator
 # ────────────────────────────────
-
 class IPFireAPI:
     def __init__(self, config):
         self.ssh_host = config["ssh_host"]
@@ -25,18 +27,18 @@ class IPFireAPI:
         self.ssh_password = config.get("ssh_password")
         self.ssh_key_path = config.get("ssh_key_path")
         self.remote_file = config["remote_file"]
-        self.snmp_host = config["snmp_host"]
-        self.snmp_community = config["snmp_community"]
 
     async def get_ssh_data(self):
         today = datetime.now().strftime("%b %e")
         drop_hostile_total = 0
         unique_ips = set()
         port_counter = Counter()
+        _LOGGER.debug("Connecting to %s:%s via SSH...", self.ssh_host, self.ssh_port)
 
         cmd = f"cat {self.remote_file}"
         conn_args = {
             "host": self.ssh_host,
+            "known_hosts": None,
             "port": self.ssh_port,
             "username": self.ssh_user,
         }
@@ -47,9 +49,12 @@ class IPFireAPI:
 
         try:
             async with asyncssh.connect(**conn_args) as conn:
+                _LOGGER.info("SSH connection established")
                 result = await conn.run(cmd, check=True)
+                _LOGGER.debug("SSH command output: %s", result.stdout[:200])
                 lines = result.stdout.splitlines()
         except Exception as e:
+            _LOGGER.error("SSH connection failed: %s", e)
             return {
                 "drop_hostile_total": f"SSH error: {e}",
                 "unique_src_ips": None,
@@ -81,7 +86,6 @@ class IPFireAPI:
             "top_ports": top_port,
             "top_ports_raw": top_ports_raw,
         }
-
 # ────────────────────────────────
 # Setup Entry
 # ────────────────────────────────
