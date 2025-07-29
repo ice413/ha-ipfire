@@ -14,10 +14,9 @@ class IPFireCoordinator(DataUpdateCoordinator):
         self.config_entry = config_entry
         self.api = api
 
-        self.snmp_refresh = config_entry.data.get("snmp_refresh", 60)
         self.ssh_refresh = config_entry.data.get("ssh_refresh", 3600)
 
-        update_interval = timedelta(seconds=min(self.snmp_refresh, self.ssh_refresh))
+        update_interval = timedelta(seconds=self.ssh_refresh)
 
         super().__init__(
             hass,
@@ -27,12 +26,10 @@ class IPFireCoordinator(DataUpdateCoordinator):
         )
 
     async def _async_update_data(self):
-        """Fetch data from IPFire via SNMP and SSH."""
+        """Fetch data from IPFire via SSH."""
         try:
-            snmp_data = await self.api.get_snmp_data()
             ssh_data = await self.api.get_ssh_data()
             return {
-                "snmp": snmp_data,
                 "ssh": ssh_data,
             }
         except Exception as err:

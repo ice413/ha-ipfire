@@ -3,7 +3,7 @@
   "name": "IpFire Firewall",
   "version": "0.0.1",
   "documentation": "https://github.com/ice413/ha-ipfire.git",
-  "requirements": ["asyncssh","pysnmp"],
+  "requirements": ["asyncssh"],
   "codeowners": ["@ice413"],
   "iot_class": "local_polling",
   "config_flow": true

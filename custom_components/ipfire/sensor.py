@@ -1,6 +1,5 @@
 import asyncio
 import asyncssh
-from pysnmp.hlapi import *
 from datetime import datetime
 from collections import Counter
 
@@ -13,20 +12,6 @@ from homeassistant.core import HomeAssistant
 from .coordinator import IPFireCoordinator
 from .const import DOMAIN
 
-# ────────────────────────────────
-# SNMP Sensor Definitions
-# ────────────────────────────────
-
-SNMP_SENSORS = [
-    {"name": "IPFire Uptime", "oid": "1.3.6.1.2.1.1.3.0"},
-    {"name": "IPFire CPU Load (1 min)", "oid": "1.3.6.1.4.1.2021.10.1.3.1"},
-    {"name": "IPFire CPU Load (5 min)", "oid": "1.3.6.1.4.1.2021.10.1.3.2"},
-    {"name": "IPFire CPU Load (15 min)", "oid": "1.3.6.1.4.1.2021.10.1.3.3"},
-    {"name": "IPFire Memory Total", "oid": "1.3.6.1.4.1.2021.4.5.0"},
-    {"name": "IPFire Memory Available", "oid": "1.3.6.1.4.1.2021.4.6.0"},
-    {"name": "IPFire Inbound Traffic (eth0)", "oid": "1.3.6.1.2.1.2.2.1.10.2"},
-    {"name": "IPFire Outbound Traffic (eth0)", "oid": "1.3.6.1.2.1.2.2.1.16.2"},
-]
 
 # ────────────────────────────────
 # API Class for Coordinator
@@ -42,30 +27,6 @@ class IPFireAPI:
         self.remote_file = config["remote_file"]
         self.snmp_host = config["snmp_host"]
         self.snmp_community = config["snmp_community"]
-
-    async def get_snmp_data(self):
-        def fetch():
-            results = {}
-            for sensor in SNMP_SENSORS:
-                oid = sensor["oid"]
-                try:
-                    iterator = getCmd(
-                        SnmpEngine(),
-                        CommunityData(self.snmp_community),
-                        UdpTransportTarget((self.snmp_host, 161)),
-                        ContextData(),
-                        ObjectType(ObjectIdentity(oid))
-                    )
-                    errorIndication, errorStatus, errorIndex, varBinds = next(iterator)
-                    if not errorIndication and not errorStatus:
-                        for varBind in varBinds:
-                            results[oid] = str(varBind[1])
-                except Exception as e:
-                    results[oid] = f"SNMP error: {e}"
-            return results
-
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, fetch)
 
     async def get_ssh_data(self):
         today = datetime.now().strftime("%b %e")
@@ -128,32 +89,13 @@ class IPFireAPI:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback):
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    snmp_sensors = [
-        IPFireSNMPSensor(sensor["name"], sensor["oid"], coordinator)
-        for sensor in SNMP_SENSORS
-    ]
-
     ssh_sensors = [
         IPFireSSHStatSensor("DROP_HOSTILE Count Today", "drop_hostile_total", coordinator),
         IPFireSSHStatSensor("Unique SRC IPs Today", "unique_src_ips", coordinator),
         IPFireSSHStatSensor("Top 10 DROP_HOSTILE Ports", "top_ports", coordinator),
     ]
 
-    async_add_entities(snmp_sensors + ssh_sensors)
-
-# ────────────────────────────────
-# SNMP Sensor Class
-# ────────────────────────────────
-
-class IPFireSNMPSensor(CoordinatorEntity, SensorEntity):
-    def __init__(self, name, oid, coordinator):
-        super().__init__(coordinator)
-        self._attr_name = name
-        self._oid = oid
-
-    @property
-    def native_value(self):
-        return self.coordinator.data["snmp"].get(self._oid)
+    async_add_entities(ssh_sensors)
 
 # ────────────────────────────────
 # SSH Sensor Class
